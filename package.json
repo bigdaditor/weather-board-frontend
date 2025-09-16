@@ -9,9 +9,19 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
-  "dependencies": {
+  "peerDependencies": {
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@fontsource/roboto": "^5.2.7",
+    "@mui/material": "^7.3.2",
+    "@types/react-router": "^5.1.20",
+    "classnames": "^2.5.1",
+    "react-router": "^7.9.1",
+    "react-router-dom": "^7.9.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
