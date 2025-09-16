@@ -1,16 +1,16 @@
-// import { useState } from 'react'
-// import './App.css'
+import { Routes, Route } from 'react-router'
+import MainPage from './page/MainPage'
+import SalesPage from "./page/SalesPage.tsx";
+import StatsPage from "./page/StatsPage.tsx";
 
 function App() {
-  // const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-      </div>
-      <div>
-      </div>
-    </>
+    <Routes>
+        <Route path="/" element={<MainPage />}/>
+        <Route path="/sales" element={<SalesPage />}/>
+        <Route path="/stats" element={<StatsPage />}/>
+    </Routes>
+
   )
 }
 
