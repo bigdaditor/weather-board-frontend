@@ -1,14 +1,17 @@
 import { Routes, Route } from 'react-router'
-import MainPage from './page/MainPage'
-import SalesPage from "./page/SalesPage.tsx";
-import StatsPage from "./page/StatsPage.tsx";
+import MainPage from './pages/MainPage'
+import SalesPage from "./pages/SalesPage.tsx";
+import StatsPage from "./pages/StatsPage.tsx";
+import Layout from "./components/Layout.tsx";
 
 function App() {
   return (
     <Routes>
-        <Route path="/" element={<MainPage />}/>
-        <Route path="/sales" element={<SalesPage />}/>
-        <Route path="/stats" element={<StatsPage />}/>
+        <Route element={<Layout />}>
+            <Route path="/" element={<MainPage />}/>
+            <Route path="/sales" element={<SalesPage />}/>
+            <Route path="/stats" element={<StatsPage />}/>
+        </Route>
     </Routes>
 
   )
