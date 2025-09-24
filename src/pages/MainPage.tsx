@@ -7,9 +7,6 @@ import Button from "@mui/material/Button"
 function MainPage() {
     return (
         <>
-            <header className={cn(styles.headerArea)}>
-                <h1>찬모날씨</h1>
-            </header>
             <Button component={Link} to={"/sales"} className={cn(styles.gridButton, styles.leftButton)} variant="contained">
                 <h1>매출 입력</h1>
             </Button>
