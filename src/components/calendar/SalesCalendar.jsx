@@ -39,9 +39,9 @@ function buildMonthMatrix(currentDate) {
     });
   }
 
-  // 다음 달 (6주 * 7일 = 42칸)
-  const totalCells = 42;
-  const nextDays = totalCells - cells.length;
+  // 다음 달: 마지막 주를 7칸으로만 맞춰서 채운다 (전체 4~6주 유동적)
+  const remainder = cells.length % 7;
+  const nextDays = remainder === 0 ? 0 : 7 - remainder;
   for (let i = 1; i <= nextDays; i++) {
     cells.push({
       date: new Date(year, month + 1, i),
@@ -60,7 +60,14 @@ function isSameDay(a, b) {
   );
 }
 
-function SalesCalendar({ currentDate, onMonthChange, onDateClick }) {
+function formatDateKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function SalesCalendar({ currentDate, onMonthChange, onDateClick, salesByDate = {} }) {
   const today = new Date();
   const cells = useMemo(() => buildMonthMatrix(currentDate), [currentDate]);
 
@@ -101,6 +108,8 @@ function SalesCalendar({ currentDate, onMonthChange, onDateClick }) {
         ))}
 
         {cells.map((cell, idx) => {
+          const dateKey = formatDateKey(cell.date);
+          const totalAmount = salesByDate[dateKey];
           const isToday = isSameDay(cell.date, today);
           const classNames = [
             'wb-calendar-cell',
@@ -117,6 +126,11 @@ function SalesCalendar({ currentDate, onMonthChange, onDateClick }) {
               onClick={() => onDateClick(cell.date)}
             >
               <div className="wb-calendar-date">{cell.date.getDate()}</div>
+              {typeof totalAmount === 'number' && (
+                <div className="wb-calendar-badge">
+                  {totalAmount.toLocaleString()}
+                </div>
+              )}
               {/* TODO: 추후 여기 날짜별 매출 합계 뱃지 같은 거 표시 가능 */}
             </div>
           );

@@ -10,6 +10,9 @@ import {
 } from '@mui/material';
 import SalesCalendar from '../components/calendar/SalesCalendar';
 import '../styles/weatherboard.css';
+import SalesCalendarWithSales from "../components/calendar/SalesCalendarWithSales.jsx";
+
+const API_BASE_URL = 'http://localhost:8000';
 
 function formatDate(date) {
   const y = date.getFullYear();
@@ -19,11 +22,11 @@ function formatDate(date) {
 }
 
 function SalesInputPage() {
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [amount, setAmount] = useState('');
   const [saleType, setSaleType] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleDateClick = (date) => {
     setSelectedDate(date);
@@ -41,10 +44,10 @@ function SalesInputPage() {
       const payload = {
         input_date: formatDate(selectedDate),
         amount: Number(amount),
-        sale_type: saleType,
+        payment_type: saleType,
       };
 
-      const resp = await fetch('/sale', {
+      const resp = await fetch(`${API_BASE_URL}/sale`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,7 +60,7 @@ function SalesInputPage() {
       }
 
       handleClose();
-      // TODO: 캘린더 다시 로드 필요하면 여기서 처리
+      setRefreshKey((prev) => prev + 1);
     } catch (err) {
       console.error(err);
       alert('매출 저장 중 에러 났다. 콘솔도 한 번 봐라 햄.');
@@ -69,10 +72,9 @@ function SalesInputPage() {
       <h2 className="wb-page-title">매출 입력</h2>
 
       <div className="wb-card">
-        <SalesCalendar
-          currentDate={currentDate}
-          onMonthChange={setCurrentDate}
+        <SalesCalendarWithSales
           onDateClick={handleDateClick}
+          refreshKey={refreshKey}
         />
       </div>
 
