@@ -1,14 +1,18 @@
 /* 레이아웃 공통 */
 .wb-root {
+  min-width: 100vw;
   min-height: 100vh;
   background-color: #f5f5f5;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .wb-container {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 24px 16px 40px;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  justify-content: center;   /* 가로 중앙 */
+  align-items: center;       /* 세로 중앙 */
+
 }
 
 .wb-page-title {
@@ -29,11 +33,11 @@
   background-color: #1976d2;
   color: white;
   padding: 12px 16px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .wb-topnav-inner {
-  max-width: 960px;
+  width: 100%;
   margin: 0 auto;
   display: flex;
   gap: 12px;
@@ -62,7 +66,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .wb-calendar-header-title {
@@ -85,7 +89,7 @@
 .wb-calendar-cell {
   border-radius: 8px;
   background-color: white;
-  min-height: 64px;
+  min-height: 96px;
   padding: 4px;
   cursor: pointer;
   border: 1px solid #e0e0e0;
@@ -111,11 +115,12 @@
 
 /* 통계/그래프 박스 */
 .wb-card {
+  width: 50vw;
+  max-width: 50vw;
   background-color: white;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  margin-bottom: 16px;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
 }
 
 /* 테이블 공통 */
@@ -124,4 +129,15 @@
   border-radius: 12px;
   padding: 8px 16px 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.wb-calendar-badge {
+  margin-top: auto;
+  align-self: flex-end;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background-color: #1976d2;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 600;
 }
