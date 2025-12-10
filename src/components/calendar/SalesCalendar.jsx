@@ -109,7 +109,7 @@ function SalesCalendar({ currentDate, onMonthChange, onDateClick, salesByDate = 
 
         {cells.map((cell, idx) => {
           const dateKey = formatDateKey(cell.date);
-          const totalAmount = salesByDate[dateKey];
+          const amount = salesByDate[dateKey]?.amount;
           const isToday = isSameDay(cell.date, today);
           const classNames = [
             'wb-calendar-cell',
@@ -126,9 +126,9 @@ function SalesCalendar({ currentDate, onMonthChange, onDateClick, salesByDate = 
               onClick={() => onDateClick(cell.date)}
             >
               <div className="wb-calendar-date">{cell.date.getDate()}</div>
-              {typeof totalAmount === 'number' && (
+              {typeof amount === 'number' && (
                 <div className="wb-calendar-badge">
-                  {totalAmount.toLocaleString()}
+                  {amount.toLocaleString()}
                 </div>
               )}
               {/* TODO: 추후 여기 날짜별 매출 합계 뱃지 같은 거 표시 가능 */}
