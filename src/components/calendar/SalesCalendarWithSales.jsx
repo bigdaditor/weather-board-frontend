@@ -3,6 +3,8 @@ import SalesCalendar from './SalesCalendar';
 
 import { useSalesCalendar } from '../../hooks/useSalesCalendar';
 import SaleDialog from "../SaleDialog.jsx";
+import { useNavigate } from 'react-router-dom';
+import { formatDateKey } from '../Calendar.jsx';
 
 function SalesCalendarWithSales({ onDateClick, refreshKey = 0 }) {
   const {
@@ -14,18 +16,32 @@ function SalesCalendarWithSales({ onDateClick, refreshKey = 0 }) {
     saleType,
     isEdit,
     dateText,
-    handleDayClick,
     handleSave,
     handleCloseDialog,
     setAmount,
     setSaleType,
+    
+    setSelectedDate,
+    openNewDialog,
   } = useSalesCalendar({ refreshKey });
 
   const handleCalendarClick = (date) => {
-    const saleInfo = handleDayClick(date);
+    // Do not open dialog on cell click anymore — only notify parent if provided
     if (onDateClick) {
-      onDateClick(date, saleInfo);
+      onDateClick(date);
     }
+  };
+
+  const handleAddClick = () => {
+    openNewDialog();
+  };
+
+  const navigate = useNavigate();
+
+  const handleEditFromCalendar = (date) => {
+    // navigate to sale list and pass date as query param for convenience
+    const key = formatDateKey(date);
+    navigate(`/sales-list?date=${key}`);
   };
 
   return (
@@ -34,6 +50,8 @@ function SalesCalendarWithSales({ onDateClick, refreshKey = 0 }) {
         currentDate={currentDate}
         onMonthChange={setCurrentDate}
         onDateClick={handleCalendarClick}
+        onAddClick={handleAddClick}
+        onEditClick={handleEditFromCalendar}
         salesByDate={salesByDate}
       />
       <SaleDialog
@@ -44,6 +62,7 @@ function SalesCalendarWithSales({ onDateClick, refreshKey = 0 }) {
         isEdit={isEdit}
         onChangeAmount={setAmount}
         onChangeSaleType={setSaleType}
+        onChangeDate={(val) => setSelectedDate(new Date(val))}
         onClose={handleCloseDialog}
         onSave={handleSave}
       />
