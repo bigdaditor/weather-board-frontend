@@ -252,6 +252,22 @@
     font-size: 0.85rem;
   }
 
+  /* sale detail styles */
+  .sale-type-summary {
+    border-radius: 6px;
+    display: flex;
+  }
+  .sale-item-row {
+    border-radius: 6px;
+  }
+
+  /* type-specific bg colors */
+  .type-card { background-color: #fff8e1; }
+  .type-cash { background-color: #e8f5e9; }
+  .type-online { background-color: #e3f2fd; }
+  .type-etc { background-color: #f3e5f5; }
+  .type-unknown { background-color: #f5f5f5; }
+
   /* Make dialog inputs more compact */
   .MuiDialog-root .MuiDialog-paper {
     width: 92vw;

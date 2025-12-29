@@ -30,3 +30,14 @@ export async function updateSale(id, data) {
   });
   return handleJsonResponse(resp);
 }
+
+export async function deleteSale(id) {
+  const resp = await fetch(`${API_BASE_URL}/sale/${id}`, {
+    method: 'DELETE',
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(text || '삭제 실패');
+  }
+  return true;
+}

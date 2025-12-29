@@ -9,12 +9,15 @@ import {
   Paper,
   IconButton,
   TablePagination,
+  Collapse,
+  Box,
+  Typography,
 } from '@mui/material';
-import { Edit } from '@mui/icons-material';
+import { Edit, Delete, ExpandMore } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
 import '../styles/weatherboard.css';
 import SaleDialog from '../components/SaleDialog.jsx';
-import { fetchSales as apiFetchSales, updateSale, createSale } from '../api/sale';
+import { fetchSales as apiFetchSales, updateSale, createSale, deleteSale } from '../api/sale';
 
 function formatAmount(num) {
   if (num == null) return '';
@@ -52,6 +55,29 @@ function SalesListPage() {
       console.error(err);
       alert('매출 리스트 불러오다 터졌다.');
       return [];
+    }
+  };
+
+  const [expandedRowId, setExpandedRowId] = useState(null);
+  const [expandedTypeKeys, setExpandedTypeKeys] = useState({});
+
+  const toggleRow = (id) => {
+    setExpandedRowId((prev) => (prev === id ? null : id));
+  };
+
+  const toggleType = (rowId, type) => {
+    const key = `${rowId}::${type}`;
+    setExpandedTypeKeys((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('삭제하시겠습니까?')) return;
+    try {
+      await deleteSale(id);
+      await fetchSales();
+    } catch (e) {
+      console.error(e);
+      alert('삭제 중 에러');
     }
   };
 
@@ -136,19 +162,82 @@ function SalesListPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {sales.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
-                <TableRow key={row.id} hover>
-                  <TableCell>{row.input_date}</TableCell>
-                  <TableCell>{formatAmount(row.amount)}</TableCell>
-                  <TableCell>{saleTypeLabel(row.payment_type || row.sale_type)}</TableCell>
-                  <TableCell>{row.weather_summary}</TableCell>
-                  <TableCell>
-                    <IconButton size="small" onClick={() => openEdit(row)}>
-                      <Edit fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {sales.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                const rowDateKey = row.input_date ? row.input_date.slice(0, 10) : '';
+                const itemsForDate = sales.filter((s) => s.input_date && s.input_date.slice(0, 10) === rowDateKey);
+                const typesMap = itemsForDate.reduce((acc, it) => {
+                  const t = it.payment_type || it.sale_type || 'unknown';
+                  if (!acc[t]) acc[t] = { items: [], total: 0 };
+                  acc[t].items.push(it);
+                  acc[t].total += Number(it.amount || 0);
+                  return acc;
+                }, {});
+
+                return (
+                  <React.Fragment key={row.id}>
+                    <TableRow hover onClick={() => toggleRow(row.id)} style={{ cursor: 'pointer' }}>
+                      <TableCell>{row.input_date}</TableCell>
+                      <TableCell>{formatAmount(row.amount)}</TableCell>
+                      <TableCell>{saleTypeLabel(row.payment_type || row.sale_type)}</TableCell>
+                      <TableCell>{row.weather_summary}</TableCell>
+                      <TableCell>
+                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); openEdit(row); }}>
+                          <Edit fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+
+                    <TableRow>
+                      <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
+                        <Collapse in={expandedRowId === row.id} timeout="auto" unmountOnExit>
+                          <Box margin={1}>
+                            {Object.keys(typesMap).length === 0 && (
+                              <Typography variant="body2">상세 내역이 없습니다.</Typography>
+                            )}
+                            {Object.entries(typesMap).map(([type, info]) => {
+                              const key = `${row.id}::${type}`;
+                              return (
+                                <Box key={key} mb={1}>
+                                  <Box display="flex" alignItems="center" justifyContent="space-between" className={`sale-type-summary type-${type}`} p={1}>
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleType(row.id, type); }}>
+                                        <ExpandMore fontSize="small" style={{ transform: expandedTypeKeys[key] ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                                      </IconButton>
+                                      <Typography variant="subtitle2">{saleTypeLabel(type)}</Typography>
+                                    </Box>
+                                    <Typography variant="subtitle2">총합: {formatAmount(info.total)}</Typography>
+                                  </Box>
+
+                                  <Collapse in={!!expandedTypeKeys[key]} timeout="auto" unmountOnExit>
+                                    <Box>
+                                      {info.items.map((it) => (
+                                        <Box key={it.id} display="flex" alignItems="center" justifyContent="space-between" className={`sale-item-row type-${type}`} p={1} mt={0.5}>
+                                          <Box>
+                                            <Typography variant="body2">{it.input_date} — {it.description || ''}</Typography>
+                                            <Typography variant="body2">{formatAmount(it.amount)}</Typography>
+                                          </Box>
+                                          <Box>
+                                            <IconButton size="small" onClick={() => openEdit(it)}>
+                                              <Edit fontSize="small" />
+                                            </IconButton>
+                                            <IconButton size="small" onClick={() => handleDelete(it.id)}>
+                                              <Delete fontSize="small" />
+                                            </IconButton>
+                                          </Box>
+                                        </Box>
+                                      ))}
+                                    </Box>
+                                  </Collapse>
+                                </Box>
+                              );
+                            })}
+                          </Box>
+                        </Collapse>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
+                );
+              })}
               {sales.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5}>데이터가 없습니다.</TableCell>
