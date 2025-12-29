@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { IconButton, Typography } from '@mui/material';
+import { IconButton, Typography, Button } from '@mui/material';
+import { Edit } from '@mui/icons-material';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import '../../styles/weatherboard.css';
 
@@ -67,7 +68,7 @@ function formatDateKey(date) {
   return `${y}-${m}-${d}`;
 }
 
-function SalesCalendar({ currentDate, onMonthChange, onDateClick, salesByDate = {} }) {
+function SalesCalendar({ currentDate, onMonthChange, onDateClick, salesByDate = {}, onAddClick, onEditClick }) {
   const today = new Date();
   const cells = useMemo(() => buildMonthMatrix(currentDate), [currentDate]);
 
@@ -89,15 +90,22 @@ function SalesCalendar({ currentDate, onMonthChange, onDateClick, salesByDate = 
   return (
     <div>
       <div className="wb-calendar-header">
-        <IconButton size="small" onClick={handlePrevMonth}>
-          <ChevronLeft />
-        </IconButton>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <IconButton size="small" onClick={handlePrevMonth}>
+            <ChevronLeft />
+          </IconButton>
+        </div>
         <Typography className="wb-calendar-header-title">
           {year}년 {month}월
         </Typography>
-        <IconButton size="small" onClick={handleNextMonth}>
-          <ChevronRight />
-        </IconButton>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <IconButton size="small" onClick={handleNextMonth}>
+            <ChevronRight />
+          </IconButton>
+          <Button size="small" variant="contained" onClick={onAddClick}>
+            매출입력
+          </Button>
+        </div>
       </div>
 
       <div className="wb-calendar-grid">
@@ -130,6 +138,18 @@ function SalesCalendar({ currentDate, onMonthChange, onDateClick, salesByDate = 
                 <div className="wb-calendar-badge">
                   {amount.toLocaleString()}
                 </div>
+              )}
+              {typeof amount === 'number' && onEditClick && (
+                <IconButton
+                  size="small"
+                  style={{ position: 'absolute', right: 6, bottom: 6 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditClick(cell.date);
+                  }}
+                >
+                  <Edit fontSize="small" />
+                </IconButton>
               )}
               {/* TODO: 추후 여기 날짜별 매출 합계 뱃지 같은 거 표시 가능 */}
             </div>

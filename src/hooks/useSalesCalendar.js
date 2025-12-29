@@ -41,11 +41,13 @@ export function useSalesCalendar({ refreshKey = 0 } = {}) {
             : Number(item.amount ?? 0);
           if (Number.isNaN(amt)) return;
 
-          map[dateStr] = {
+          if (!map[dateStr]) map[dateStr] = { amount: 0, items: [] };
+          map[dateStr].amount += amt;
+          map[dateStr].items.push({
             id: item.id,
             amount: amt,
             payment_type: item.payment_type,
-          };
+          });
         });
 
         setSalesByDate(map);
@@ -77,6 +79,14 @@ export function useSalesCalendar({ refreshKey = 0 } = {}) {
     return salesInfo;
   };
 
+  const openNewDialog = (date = new Date()) => {
+    setSelectedDate(date);
+    setEditingSaleId(null);
+    setAmount('');
+    setSaleType('');
+    setDialogOpen(true);
+  };
+
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setAmount('');
@@ -100,24 +110,36 @@ export function useSalesCalendar({ refreshKey = 0 } = {}) {
 
       if (editingSaleId == null) {
         const saved = await createSale(payload);
-        setSalesByDate((prev) => ({
-          ...prev,
-          [dateKey]: {
-            id: saved.id,
-            amount: saved.amount,
-            payment_type: saved.payment_type,
-          },
-        }));
+        setSalesByDate((prev) => {
+          const next = { ...prev };
+          if (!next[dateKey]) next[dateKey] = { amount: 0, items: [] };
+          next[dateKey].items = [...next[dateKey].items, { id: saved.id, amount: saved.amount, payment_type: saved.payment_type }];
+          next[dateKey].amount = next[dateKey].items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
+          return next;
+        });
       } else {
         const updated = await updateSale(editingSaleId, payload);
-        setSalesByDate((prev) => ({
-          ...prev,
-          [dateKey]: {
-            id: updated.id,
-            amount: updated.amount,
-            payment_type: updated.payment_type,
-          },
-        }));
+        // find and replace the item in any date bucket; item id may stay same or date may change
+        setSalesByDate((prev) => {
+          const next = {};
+          Object.keys(prev).forEach((k) => {
+            next[k] = { amount: prev[k].amount, items: [...prev[k].items] };
+          });
+
+          // remove existing occurrence
+          Object.keys(next).forEach((k) => {
+            next[k].items = next[k].items.filter((it) => it.id !== editingSaleId);
+            next[k].amount = next[k].items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
+            if (next[k].items.length === 0) delete next[k];
+          });
+
+          // add updated into target dateKey
+          if (!next[dateKey]) next[dateKey] = { amount: 0, items: [] };
+          next[dateKey].items = [...next[dateKey].items, { id: updated.id, amount: updated.amount, payment_type: updated.payment_type }];
+          next[dateKey].amount = next[dateKey].items.reduce((s, it) => s + (Number(it.amount) || 0), 0);
+
+          return next;
+        });
       }
 
       handleCloseDialog();
@@ -136,6 +158,8 @@ export function useSalesCalendar({ refreshKey = 0 } = {}) {
     salesByDate,
     dialogOpen,
     selectedDate,
+    setSelectedDate,
+    openNewDialog,
     amount,
     saleType,
     isEdit,
