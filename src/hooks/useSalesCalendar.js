@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createSale, fetchSales, updateSale } from '../api/sale';
+import { createSale, fetchSalesByMonth, updateSale } from '../api/sale';
 
 export function formatDateKey(date) {
   const y = date.getFullYear();
@@ -28,27 +28,42 @@ export function useSalesCalendar({ refreshKey = 0 } = {}) {
   useEffect(() => {
     const load = async () => {
       try {
-        const data = await fetchSales();
+        const data = await fetchSalesByMonth(monthKey);
         const map = {};
-
-        data.forEach((item) => {
-          if (typeof item.input_date !== 'string') return;
-          const dateStr = item.input_date.slice(0, 10);
-          if (!dateStr.startsWith(monthKey)) return;
-
-          const amt = typeof item.amount === 'number'
-            ? item.amount
-            : Number(item.amount ?? 0);
-          if (Number.isNaN(amt)) return;
-
-          if (!map[dateStr]) map[dateStr] = { amount: 0, items: [] };
-          map[dateStr].amount += amt;
-          map[dateStr].items.push({
-            id: item.id,
-            amount: amt,
-            payment_type: item.payment_type,
+        console.log(data);
+        if (data && data.data && Array.isArray(data.data)) {
+          // paginated grouped response
+          data.data.forEach((g) => {
+            if (!g.date) return;
+            const dateStr = g.date;
+            const amt = typeof g.total_amount === 'number' ? g.total_amount : Number(g.total_amount ?? 0);
+            if (Number.isNaN(amt)) return;
+            map[dateStr] = { amount: amt, items: [] };
           });
-        });
+        } else if (Array.isArray(data) && data.length > 0 && data[0].date && data[0].payment_types) {
+          // grouped array
+          data.forEach((g) => {
+            if (!g.date) return;
+            const dateStr = g.date;
+            const amt = typeof g.total_amount === 'number' ? g.total_amount : Number(g.total_amount ?? 0);
+            if (Number.isNaN(amt)) return;
+            map[dateStr] = { amount: amt, items: [] };
+          });
+        } else if (Array.isArray(data)) {
+          // raw sales array
+          data.forEach((item) => {
+            if (typeof item.input_date !== 'string') return;
+            const dateStr = item.input_date.slice(0, 10);
+            if (!dateStr.startsWith(monthKey)) return;
+
+            const amt = typeof item.amount === 'number' ? item.amount : Number(item.amount ?? 0);
+            if (Number.isNaN(amt)) return;
+
+            if (!map[dateStr]) map[dateStr] = { amount: 0, items: [] };
+            map[dateStr].amount += amt;
+            map[dateStr].items.push({ id: item.id, amount: amt, payment_type: item.payment_type });
+          });
+        }
 
         setSalesByDate(map);
       } catch (e) {
