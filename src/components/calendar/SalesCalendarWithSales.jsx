@@ -20,7 +20,6 @@ function SalesCalendarWithSales({ onDateClick, refreshKey = 0 }) {
     handleCloseDialog,
     setAmount,
     setSaleType,
-    
     setSelectedDate,
     openNewDialog,
   } = useSalesCalendar({ refreshKey });

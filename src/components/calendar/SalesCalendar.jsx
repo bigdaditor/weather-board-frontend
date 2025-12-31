@@ -68,7 +68,7 @@ function formatDateKey(date) {
   return `${y}-${m}-${d}`;
 }
 
-function SalesCalendar({ currentDate, onMonthChange, onDateClick, salesByDate = {}, onAddClick, onEditClick }) {
+function SalesCalendar({ currentDate, onMonthChange, onDateClick, salesByDate, onAddClick, onEditClick }) {
   const today = new Date();
   const cells = useMemo(() => buildMonthMatrix(currentDate), [currentDate]);
 

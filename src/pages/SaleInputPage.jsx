@@ -5,7 +5,7 @@ import SalesCalendarWithSales from "../components/calendar/SalesCalendarWithSale
 function SalesInputPage() {
   return (
     <div>
-      <h2 className="wb-page-title">매출 입력</h2>
+      <h2 className="wb-page-title wb-page-title--card">매출 입력</h2>
 
       <div className="wb-card">
         <SalesCalendarWithSales />
