@@ -17,7 +17,7 @@ import { Edit, Delete, ExpandMore } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
 import '../styles/weatherboard.css';
 import SaleDialog from '../components/SaleDialog.jsx';
-import { fetchSales as apiFetchSales, updateSale, createSale, deleteSale } from '../api/sale';
+import { fetchSales as apiFetchSales, updateSale, deleteSale } from '../api/sale';
 
 function formatAmount(num) {
   if (num == null) return '';
@@ -35,10 +35,9 @@ function saleTypeLabel(type) {
   return map[type] || type;
 }
 
+
 function SalesListPage() {
-  const [sales, setSales] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
   const [dateText, setDateText] = useState('');
   const [amount, setAmount] = useState('');
   const [saleType, setSaleType] = useState('');
@@ -46,11 +45,26 @@ function SalesListPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const fetchSales = async () => {
+  const fetchSales = async (requestedPage = null, requestedPageSize = null) => {
     try {
-      const data = await apiFetchSales();
-      setSales(data);
-      return data;
+      const usePage = requestedPage != null ? requestedPage : page;
+      const usePageSize = requestedPageSize != null ? requestedPageSize : rowsPerPage;
+      // API expects 1-based page
+      const apiPage = (usePage != null ? usePage : 0) + 1;
+      const resp = await apiFetchSales(apiPage, usePageSize);
+
+      if (resp && resp.data) {
+        const grouped = resp.data.map((d) => ({ ...d, items: d.items || [] }));
+        setGroupedSales(grouped);
+        setTotalCount(resp.total || grouped.length);
+        setRowsPerPage(resp.page_size || usePageSize);
+        setPage((resp.page && resp.page - 1) || (apiPage - 1));
+      } else {
+        setGroupedSales([]);
+        setTotalCount(0);
+      }
+
+      return resp;
     } catch (err) {
       console.error(err);
       alert('매출 리스트 불러오다 터졌다.');
@@ -59,22 +73,23 @@ function SalesListPage() {
   };
 
   const [expandedRowId, setExpandedRowId] = useState(null);
-  const [expandedTypeKeys, setExpandedTypeKeys] = useState({});
+  const [groupedSales, setGroupedSales] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
 
   const toggleRow = (id) => {
     setExpandedRowId((prev) => (prev === id ? null : id));
   };
 
-  const toggleType = (rowId, type) => {
-    const key = `${rowId}::${type}`;
-    setExpandedTypeKeys((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const handleDelete = async (id) => {
-    if (!confirm('삭제하시겠습니까?')) return;
+  const handleDeleteType = async (items) => {
+    console.log('Deleting items:', items);
+    if (!items || items.length === 0) {
+      alert('삭제할 항목이 없습니다.');
+      return;
+    }
+    if (!confirm('해당 타입의 모든 항목을 삭제하시겠습니까?')) return;
     try {
-      await deleteSale(id);
-      await fetchSales();
+      await deleteSale(items);
+      await fetchSales(page, rowsPerPage);
     } catch (e) {
       console.error(e);
       alert('삭제 중 에러');
@@ -84,17 +99,12 @@ function SalesListPage() {
   useEffect(() => {
     (async () => {
       try {
-        const data = await apiFetchSales();
-        setSales(data);
+        const resp = await fetchSales(0, rowsPerPage);
         const params = new URLSearchParams(location.search);
         const qdate = params.get('date');
         if (qdate) {
-          const match = data.find((s) => s.input_date && s.input_date.slice(0, 10) === qdate);
+          const match = (Array.isArray(resp) ? (resp.find && resp.find((s) => (s.date || (s.input_date && s.input_date.slice(0,10))) === qdate)) : null);
           if (match) {
-            setEditingId(match.id ?? null);
-            setDateText(match.input_date ? match.input_date.slice(0, 10) : '');
-            setAmount(match.amount ?? '');
-            setSaleType(match.payment_type ?? match.sale_type ?? '');
             setDialogOpen(true);
           }
         }
@@ -104,15 +114,6 @@ function SalesListPage() {
     })();
   }, [location.search]);
 
-  const openEdit = (row) => {
-    setEditingId(row.id ?? null);
-    setDateText(row.input_date ? row.input_date.slice(0, 10) : '');
-    setAmount(row.amount ?? '');
-    setSaleType(row.payment_type ?? row.sale_type ?? '');
-    setDialogOpen(true);
-  };
-
-
   const handleSave = async () => {
     try {
       const payload = {
@@ -120,14 +121,9 @@ function SalesListPage() {
         amount: Number(amount),
         payment_type: saleType,
       };
-
-      if (editingId != null) {
-        await updateSale(editingId, payload);
-      } else {
-        await createSale(payload);
-      }
-
-      await fetchSales();
+      
+      await updateSale(payload);
+      await fetchSales(page, rowsPerPage);
       setDialogOpen(false);
     } catch (e) {
       console.error(e);
@@ -136,13 +132,16 @@ function SalesListPage() {
   };
 
   const handleChangePage = (event, newPage) => {
+    console.log('[SalesList] handleChangePage newPage=', newPage);
     setPage(newPage);
+    fetchSales(newPage, rowsPerPage).catch((e) => console.error(e));
   };
 
   const handleChangeRowsPerPage = (event) => {
     const v = parseInt(event.target.value, 10);
     setRowsPerPage(v);
     setPage(0);
+    fetchSales(0, v);
   };
 
   return (
@@ -156,78 +155,63 @@ function SalesListPage() {
               <TableRow>
                 <TableCell>날짜</TableCell>
                 <TableCell>매출액</TableCell>
-                <TableCell>매출 타입</TableCell>
-                <TableCell>날씨 요약</TableCell>
                 <TableCell>액션</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {sales.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                const rowDateKey = row.input_date ? row.input_date.slice(0, 10) : '';
-                const itemsForDate = sales.filter((s) => s.input_date && s.input_date.slice(0, 10) === rowDateKey);
-                const typesMap = itemsForDate.reduce((acc, it) => {
-                  const t = it.payment_type || it.sale_type || 'unknown';
-                  if (!acc[t]) acc[t] = { items: [], total: 0 };
-                  acc[t].items.push(it);
-                  acc[t].total += Number(it.amount || 0);
-                  return acc;
-                }, {});
-
+              {groupedSales.map((row, idx) => {
+                const key = row.date || String(idx);
                 return (
-                  <React.Fragment key={row.id}>
-                    <TableRow hover onClick={() => toggleRow(row.id)} style={{ cursor: 'pointer' }}>
-                      <TableCell>{row.input_date}</TableCell>
-                      <TableCell>{formatAmount(row.amount)}</TableCell>
-                      <TableCell>{saleTypeLabel(row.payment_type || row.sale_type)}</TableCell>
-                      <TableCell>{row.weather_summary}</TableCell>
-                      <TableCell>
-                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); openEdit(row); }}>
-                          <Edit fontSize="small" />
-                        </IconButton>
-                      </TableCell>
+                  <React.Fragment key={key}>
+                    <TableRow hover onClick={() => toggleRow(key)} style={{ cursor: 'pointer' }}>
+                      <TableCell>{row.date}</TableCell>
+                      <TableCell>{formatAmount(row.total_amount)}</TableCell>
+                      <TableCell />
                     </TableRow>
 
                     <TableRow>
-                      <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
-                        <Collapse in={expandedRowId === row.id} timeout="auto" unmountOnExit>
+                      <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
+                        <Collapse in={expandedRowId === key} timeout="auto" unmountOnExit>
                           <Box margin={1}>
-                            {Object.keys(typesMap).length === 0 && (
+                            {(!row.payment_types || Object.keys(row.payment_types).length === 0) && (
                               <Typography variant="body2">상세 내역이 없습니다.</Typography>
                             )}
-                            {Object.entries(typesMap).map(([type, info]) => {
-                              const key = `${row.id}::${type}`;
+                            {row.payment_types && Object.entries(row.payment_types).map(([type, amount]) => {
                               return (
-                                <Box key={key} mb={1}>
+                                <Box key={`${key}::${type}`} mb={1}>
                                   <Box display="flex" alignItems="center" justifyContent="space-between" className={`sale-type-summary type-${type}`} p={1}>
                                     <Box display="flex" alignItems="center" gap={1}>
-                                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleType(row.id, type); }}>
-                                        <ExpandMore fontSize="small" style={{ transform: expandedTypeKeys[key] ? 'rotate(180deg)' : 'rotate(0deg)' }} />
-                                      </IconButton>
                                       <Typography variant="subtitle2">{saleTypeLabel(type)}</Typography>
                                     </Box>
-                                    <Typography variant="subtitle2">총합: {formatAmount(info.total)}</Typography>
-                                  </Box>
-
-                                  <Collapse in={!!expandedTypeKeys[key]} timeout="auto" unmountOnExit>
-                                    <Box>
-                                      {info.items.map((it) => (
-                                        <Box key={it.id} display="flex" alignItems="center" justifyContent="space-between" className={`sale-item-row type-${type}`} p={1} mt={0.5}>
-                                          <Box>
-                                            <Typography variant="body2">{it.input_date} — {it.description || ''}</Typography>
-                                            <Typography variant="body2">{formatAmount(it.amount)}</Typography>
-                                          </Box>
-                                          <Box>
-                                            <IconButton size="small" onClick={() => openEdit(it)}>
-                                              <Edit fontSize="small" />
-                                            </IconButton>
-                                            <IconButton size="small" onClick={() => handleDelete(it.id)}>
-                                              <Delete fontSize="small" />
-                                            </IconButton>
-                                          </Box>
-                                        </Box>
-                                      ))}
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                      <Typography variant="subtitle2">{formatAmount(amount)}</Typography>
+                                      <IconButton size="small" 
+                                        onClick={(e) => {
+                                          e.stopPropagation(); 
+                                          setDateText(row.date); 
+                                          setAmount(amount); 
+                                          setSaleType(type);
+                                          setDialogOpen(true); 
+                                        }}>
+                                        <Edit fontSize="small" />
+                                      </IconButton>
+                                      <IconButton 
+                                        size="small" 
+                                        onClick={
+                                          (e) => {
+                                            e.stopPropagation(); 
+                                            const payload = {
+                                              input_date: row.date,
+                                              payment_type: type,
+                                            }
+                                            handleDeleteType(payload); 
+                                            }
+                                          }
+                                          >
+                                        <Delete fontSize="small" />
+                                      </IconButton>
                                     </Box>
-                                  </Collapse>
+                                  </Box>
                                 </Box>
                               );
                             })}
@@ -238,16 +222,16 @@ function SalesListPage() {
                   </React.Fragment>
                 );
               })}
-              {sales.length === 0 && (
+              {groupedSales.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5}>데이터가 없습니다.</TableCell>
+                  <TableCell colSpan={3}>데이터가 없습니다.</TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
           <TablePagination
             component="div"
-            count={sales.length}
+            count={totalCount || groupedSales.length}
             page={page}
             onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
