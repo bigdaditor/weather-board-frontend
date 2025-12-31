@@ -8,8 +8,13 @@ async function handleJsonResponse(resp) {
   return resp.json();
 }
 
-export async function fetchSales() {
-  const resp = await fetch(`${API_BASE_URL}/sale`);
+export async function fetchSales(page, page_size) {
+  let url = `${API_BASE_URL}/sale`;
+  const params = [];
+  if (page != null) params.push(`page=${page}`);
+  if (page_size != null) params.push(`page_size=${page_size}`);
+  if (params.length) url += `?${params.join('&')}`;
+  const resp = await fetch(url);
   return handleJsonResponse(resp);
 }
 
@@ -22,8 +27,8 @@ export async function createSale(data) {
   return handleJsonResponse(resp);
 }
 
-export async function updateSale(id, data) {
-  const resp = await fetch(`${API_BASE_URL}/sale/${id}`, {
+export async function updateSale(data) {
+  const resp = await fetch(`${API_BASE_URL}/sale`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -31,9 +36,11 @@ export async function updateSale(id, data) {
   return handleJsonResponse(resp);
 }
 
-export async function deleteSale(id) {
-  const resp = await fetch(`${API_BASE_URL}/sale/${id}`, {
+export async function deleteSale(data) {
+  const resp = await fetch(`${API_BASE_URL}/sale`, {
     method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
   });
   if (!resp.ok) {
     const text = await resp.text();
