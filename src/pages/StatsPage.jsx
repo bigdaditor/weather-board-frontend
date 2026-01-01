@@ -12,6 +12,7 @@ import {
   Legend,
 } from 'chart.js';
 import '../styles/weatherboard.css';
+import { fetchSalesByMonth } from '../api/sale';
 
 ChartJS.register(
   CategoryScale,
@@ -26,13 +27,32 @@ ChartJS.register(
 function StatsPage() {
   const [loading, setLoading] = useState(false);
   const [salesStats, setSalesStats] = useState([]);
+  const [monthKey, setMonthKey] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   const fetchStats = async () => {
     try {
-      const resp = await fetch('/stats/sales'); // 실제 엔드포인트에 맞게 수정
-      if (!resp.ok) throw new Error('통계 조회 실패');
-      const data = await resp.json();
-      setSalesStats(data);
+      // sales: use GET /sale?month=YYYY-MM (returns paginated grouped response)
+      const salesResp = await fetchSalesByMonth(monthKey);
+      const salesData = (salesResp && salesResp.data) || [];
+
+      // weather: GET /weather and map by date
+      const weatherResp = await fetch('/weather');
+      const weatherData = weatherResp.ok ? await weatherResp.json() : [];
+
+      // merge into a single array by date (use sales dates for labels)
+      const merged = salesData.map((s) => {
+        const weather = (weatherData || []).find((w) => w.date === s.date) || {};
+        return {
+          date: s.date,
+          total_amount: s.total_amount || 0,
+          avg_temp: weather.avg_temp ?? null,
+        };
+      });
+
+      setSalesStats(merged);
     } catch (err) {
       console.error(err);
       alert('통계 데이터 불러오다가 에러났음.');
@@ -41,7 +61,7 @@ function StatsPage() {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [monthKey]);
 
   const handleSync = async () => {
     try {
@@ -98,7 +118,10 @@ function StatsPage() {
       <h2 className="wb-page-title">통계</h2>
 
       <div className="wb-toolbar">
-        <span>매출 / 날씨 동기화</span>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <span>월별: </span>
+          <input type="month" value={monthKey} onChange={(e) => setMonthKey(e.target.value)} />
+        </div>
         <Button variant="contained" onClick={handleSync} disabled={loading}>
           {loading ? '동기화 중...' : '동기화'}
         </Button>
