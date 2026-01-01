@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Table,
   TableHead,
@@ -45,7 +45,11 @@ function SalesListPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const fetchSales = async (requestedPage = null, requestedPageSize = null) => {
+  const [expandedRowId, setExpandedRowId] = useState(null);
+  const [groupedSales, setGroupedSales] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const fetchSales = useCallback(async (requestedPage = null, requestedPageSize = null) => {
     try {
       const usePage = requestedPage != null ? requestedPage : page;
       const usePageSize = requestedPageSize != null ? requestedPageSize : rowsPerPage;
@@ -70,11 +74,7 @@ function SalesListPage() {
       alert('매출 리스트 불러오다 터졌다.');
       return [];
     }
-  };
-
-  const [expandedRowId, setExpandedRowId] = useState(null);
-  const [groupedSales, setGroupedSales] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
+  }, [page, rowsPerPage]);
 
   const toggleRow = (id) => {
     setExpandedRowId((prev) => (prev === id ? null : id));
@@ -112,7 +112,7 @@ function SalesListPage() {
         console.error(err);
       }
     })();
-  }, [location.search]);
+  }, [fetchSales, location.search, rowsPerPage]);
 
   const handleSave = async () => {
     try {

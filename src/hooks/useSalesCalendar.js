@@ -64,7 +64,7 @@ export function useSalesCalendar({ refreshKey = 0 } = {}) {
             ? { type: 'info', message: '이번 달 매출 데이터가 없습니다. "매출입력" 버튼으로 추가해보세요.' }
             : { type: 'idle', message: '' }
         );
-      } catch (e) {
+      } catch {
         setSalesByDate({});
         setStatus({ type: 'error', message: '매출 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.' });
       }
@@ -157,7 +157,7 @@ export function useSalesCalendar({ refreshKey = 0 } = {}) {
       }
 
       handleCloseDialog();
-    } catch (e) {
+    } catch {
       alert('매출 저장/수정 중 에러가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   };
