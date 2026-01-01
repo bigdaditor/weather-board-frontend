@@ -1,74 +1,95 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from '@mui/material';
-import { Line, Bar } from 'react-chartjs-2';
+import {
+  Button,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Stack,
+  Container,
+  Paper,
+  Typography,
+  Box,
+} from '@mui/material';
+import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
-  BarElement,
   Tooltip,
   Legend,
 } from 'chart.js';
 import '../styles/weatherboard.css';
-import { fetchSalesByMonth } from '../api/sale';
+import { fetchStatistics, fetchStatisticsSummary } from '../api/statistics';
+
+const currencyFormatter = new Intl.NumberFormat('ko-KR');
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
-  BarElement,
   Tooltip,
   Legend
 );
 
 function StatsPage() {
   const [loading, setLoading] = useState(false);
-  const [salesStats, setSalesStats] = useState([]);
+  const [salesStats, setSalesStats] = useState([]); // weekly aggregated data
+  const [monthlySeries, setMonthlySeries] = useState([]); // month over month data
+  const [paymentType, setPaymentType] = useState('all');
   const [monthKey, setMonthKey] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
 
-  const fetchStats = async () => {
+  const fetchStats = async (month, payment_type = 'all') => {
     try {
-      // sales: use GET /sale?month=YYYY-MM (returns paginated grouped response)
-      const salesResp = await fetchSalesByMonth(monthKey);
-      const salesData = (salesResp && salesResp.data) || [];
+      const [year, m] = month.split('-').map((v) => parseInt(v, 10));
+      const start = `${String(year)}-${String(m).padStart(2, '0')}-01`;
+      const lastDay = new Date(year, m, 0).getDate();
+      const end = `${String(year)}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
-      // weather: GET /weather and map by date
-      const weatherResp = await fetch('/weather');
-      const weatherData = weatherResp.ok ? await weatherResp.json() : [];
-
-      // merge into a single array by date (use sales dates for labels)
-      const merged = salesData.map((s) => {
-        const weather = (weatherData || []).find((w) => w.date === s.date) || {};
-        return {
-          date: s.date,
-          total_amount: s.total_amount || 0,
-          avg_temp: weather.avg_temp ?? null,
-        };
+      // weekly aggregated stats
+      const weekly = await fetchStatistics({ period_type: 'week', start_date: start, end_date: end, payment_type: payment_type });
+      const weeklyArr = Array.isArray(weekly) ? weekly : [];
+      const weeklyMap = {};
+      weeklyArr.forEach((r) => {
+        const key = r.period_start;
+        weeklyMap[key] = (weeklyMap[key] || 0) + (r.total_amount || 0);
       });
+      const weeklyMerged = Object.keys(weeklyMap)
+        .sort()
+        .map((k) => ({ date: k, total_amount: weeklyMap[k] }));
+      setSalesStats(weeklyMerged);
 
-      setSalesStats(merged);
+      // month-over-month summary chart (all months)
+      const monthly = await fetchStatisticsSummary('month', payment_type);
+      const monthlyArr = Array.isArray(monthly) ? monthly : [];
+      const sortedMonthly = monthlyArr
+        .filter((r) => r.period_start)
+        .sort((a, b) => new Date(a.period_start) - new Date(b.period_start))
+        .slice(-12); // show recent 12 months to fit small screens
+      setMonthlySeries(sortedMonthly);
     } catch (err) {
-      console.error(err);
-      alert('통계 데이터 불러오다가 에러났음.');
+      console.error('fetchStats err', err);
+      alert('통계 데이터 불러오다가 에러났습니다.');
     }
   };
 
   useEffect(() => {
-    fetchStats();
-  }, [monthKey]);
+    fetchStats(monthKey, paymentType);
+  }, [monthKey, paymentType]);
 
   const handleSync = async () => {
     try {
       setLoading(true);
       // 날씨-매출 동기화 트리거 가정
       await fetch('/sync/weather', { method: 'POST' });
-      await fetchStats();
+      await fetchStats(monthKey);
     } catch (err) {
       console.error(err);
       alert('동기화 중 에러.');
@@ -76,16 +97,14 @@ function StatsPage() {
       setLoading(false);
     }
   };
-
   const labels = salesStats.map((d) => d.date);
   const totalSales = salesStats.map((d) => d.total_amount);
-  const avgTemp = salesStats.map((d) => d.avg_temp);
 
   const lineData = {
     labels,
     datasets: [
       {
-        label: '매출액',
+        label: '주별 매출 합계',
         data: totalSales,
         borderWidth: 2,
         tension: 0.2,
@@ -93,13 +112,29 @@ function StatsPage() {
     ],
   };
 
-  const barData = {
-    labels,
+  const totalAmount = totalSales.reduce((sum, v) => sum + (v || 0), 0);
+  const averageWeek = salesStats.length ? Math.round(totalAmount / salesStats.length) : 0;
+  const paymentTypeLabel = {
+    all: '전체',
+    card: '카드',
+    cash: '현금',
+    transfer: '이체',
+    etc: '기타',
+  };
+  const monthlyLabels = monthlySeries.map((b) => b.period_start?.slice(0, 7) || '');
+  const monthlyTotals = monthlySeries.map((b) => b.total_amount || 0);
+  const selectedPaymentLabel = paymentTypeLabel[paymentType] || paymentType;
+  const monthlyData = {
+    labels: monthlyLabels,
     datasets: [
       {
-        label: '평균 기온(°C)',
-        data: avgTemp,
-        borderWidth: 1,
+        label: '월별 매출 합계',
+        data: monthlyTotals,
+        borderWidth: 2,
+        backgroundColor: 'rgba(37, 99, 235, 0.12)',
+        borderColor: '#2563eb',
+        fill: true,
+        tension: 0.25,
       },
     ],
   };
@@ -114,29 +149,119 @@ function StatsPage() {
   };
 
   return (
-    <div>
-      <h2 className="wb-page-title">통계</h2>
+    <Box className="stats-page">
+      <Container maxWidth="lg" className="stats-container">
+        <Box className="stats-hero">
+          <Box>
+            <Typography variant="overline" className="stats-eyebrow">
+              매출 인사이트
+            </Typography>
+            <Typography variant="h5" className="wb-page-title wb-page-title--aligned">
+              통계
+            </Typography>
+            <Typography variant="body2" className="stats-hero__subtitle">
+              선택한 월의 흐름과 결제 비중을 한눈에 정리했습니다.
+            </Typography>
 
-      <div className="wb-toolbar">
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <span>월별: </span>
-          <input type="month" value={monthKey} onChange={(e) => setMonthKey(e.target.value)} />
-        </div>
-        <Button variant="contained" onClick={handleSync} disabled={loading}>
-          {loading ? '동기화 중...' : '동기화'}
-        </Button>
-      </div>
+            <Stack direction="row" spacing={1} className="stats-metric-row">
+              <Paper variant="outlined" className="metric-chip">
+                <Typography className="metric-label">총 매출</Typography>
+                <Typography className="metric-value" variant="h6">
+                  ₩{currencyFormatter.format(totalAmount)}
+                </Typography>
+              </Paper>
+              <Paper variant="outlined" className="metric-chip">
+                <Typography className="metric-label">주 평균</Typography>
+                <Typography className="metric-value" variant="h6">
+                  ₩{currencyFormatter.format(averageWeek)}
+                </Typography>
+              </Paper>
+              <Paper variant="outlined" className="metric-chip">
+                <Typography className="metric-label">필터</Typography>
+                <Typography className="metric-value" variant="h6">
+                  {selectedPaymentLabel}
+                </Typography>
+              </Paper>
+            </Stack>
+          </Box>
 
-      <div className="wb-card">
-        <h3 style={{ marginBottom: 8 }}>일별 매출 추이</h3>
-        <Line data={lineData} options={commonOptions} />
-      </div>
+          <Paper className="wb-card stats-filters-card" elevation={1}>
+            <div className="filters-header">
+              <div>
+                <Typography className="filters-title">조회 조건</Typography>
+                <Typography className="filters-subtitle">
+                  월과 결제타입을 바꾸고 바로 확인하세요.
+                </Typography>
+              </div>
+              <Button variant="contained" onClick={handleSync} disabled={loading} className="sync-btn">
+                {loading ? '동기화 중...' : '동기화'}
+              </Button>
+            </div>
 
-      <div className="wb-card">
-        <h3 style={{ marginBottom: 8 }}>일별 평균 기온</h3>
-        <Bar data={barData} options={commonOptions} />
-      </div>
-    </div>
+            <Stack direction="row" spacing={1.5} alignItems="center" className="filters-row">
+              <TextField
+                label="월"
+                type="month"
+                size="small"
+                fullWidth
+                value={monthKey}
+                onChange={(e) => setMonthKey(e.target.value)}
+              />
+
+              <FormControl size="small" className="filter-select" fullWidth>
+                <InputLabel id="payment-type-label">결제타입</InputLabel>
+                <Select
+                  labelId="payment-type-label"
+                  value={paymentType}
+                  label="결제타입"
+                  onChange={(e) => setPaymentType(e.target.value)}
+                >
+                  <MenuItem value="all">전체</MenuItem>
+                  <MenuItem value="card">카드</MenuItem>
+                  <MenuItem value="cash">현금</MenuItem>
+                  <MenuItem value="transfer">이체</MenuItem>
+                  <MenuItem value="etc">기타</MenuItem>
+                </Select>
+              </FormControl>
+            </Stack>
+          </Paper>
+        </Box>
+
+        <Stack spacing={2} className="stats-grid" alignItems="stretch">
+          <Paper className="wb-card" elevation={1}>
+            <div className="card-header">
+              <Typography variant="subtitle1" component="h3">
+                주별 매출 추이
+              </Typography>
+              <span className="card-caption">{monthKey} 주간 합계</span>
+            </div>
+            <div className="chart-wrapper">
+              {labels.length === 0 ? (
+                <div className="chart-empty">해당 월의 통계 데이터가 없습니다.</div>
+              ) : (
+                <Line data={lineData} options={commonOptions} />
+              )}
+            </div>
+          </Paper>
+
+          <Paper className="wb-card" elevation={1}>
+            <div className="card-header">
+              <Typography variant="subtitle1" component="h3">
+                월별 매출 추이
+              </Typography>
+              <span className="card-caption">최근 12개월 흐름을 확인하세요.</span>
+            </div>
+            <div className="chart-wrapper">
+              {monthlyLabels.length === 0 ? (
+                <div className="chart-empty">월별 통계 데이터가 없습니다.</div>
+              ) : (
+                <Line data={monthlyData} options={commonOptions} />
+              )}
+            </div>
+          </Paper>
+        </Stack>
+      </Container>
+    </Box>
   );
 }
 
