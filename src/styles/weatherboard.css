@@ -37,37 +37,50 @@
   margin-bottom: 16px;
 }
 
-/* 탑 네비게이션 */
-.wb-topnav {
-  background-color: #1976d2;
-  color: white;
-  padding: 12px 16px;
+/* visually separate header/toolbar from content */
+.wb-toolbar {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e9eef5;
   margin-bottom: 20px;
 }
 
-.wb-topnav-inner {
-  width: 100%;
-  margin: 0 auto;
+/* 탑 네비게이션 */
+.wb-topnav-appbar {
+  background: linear-gradient(90deg, #1d4ed8, #2563eb);
+  color: #fff;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.wb-topnav-toolbar {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 0 12px;
+}
+
+.wb-topnav-brand {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+}
+
+.wb-topnav-actions {
+  display: flex;
   align-items: center;
 }
 
-.wb-topnav-title {
-  font-weight: 600;
-  margin-right: 24px;
+.wb-topnav-btn {
+  color: #e8eeff !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
 }
 
-.wb-topnav-link {
-  cursor: pointer;
-  font-size: 0.95rem;
-  opacity: 0.75;
-}
-
-.wb-topnav-link-active {
-  opacity: 1;
-  font-weight: 600;
-  text-decoration: underline;
+.wb-topnav-btn-active {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #fff !important;
 }
 
 /* 달력 공통 */
@@ -127,8 +140,6 @@
 
 /* 통계/그래프 박스 */
 .wb-card {
-  width: 50vw;
-  max-width: 50vw;
   background-color: white;
   border-radius: 16px;
   padding: 24px;
@@ -136,6 +147,196 @@
 }
 /* center cards on the page */
 .wb-card { margin: 0 auto; }
+
+/* make cards fill available width but constrained to readable max */
+.wb-card {
+  width: 100%;
+  max-width: 1200px;
+  padding: 28px;
+}
+
+.stats-page {
+  width: 100%;
+  padding: 8px 0 32px;
+  background: radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.06), transparent 25%),
+    radial-gradient(circle at 80% 0%, rgba(236, 72, 153, 0.06), transparent 22%),
+    #f5f7fb;
+}
+
+.sales-page {
+  width: 100%;
+  padding: 8px 0 28px;
+  background: radial-gradient(circle at 12% 18%, rgba(37, 99, 235, 0.05), transparent 20%),
+    #f7f8fb;
+}
+
+.sales-layout {
+  width: 92%;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sales-header {
+  margin: 4px 0 4px;
+}
+
+.sales-subtitle {
+  color: #5f6c85;
+  margin: 4px 0 0 0;
+  font-size: 0.95rem;
+}
+
+.sales-calendar-card {
+  padding: 18px 20px;
+}
+
+.stats-hero {
+  width: 100%;
+  margin: 0 0 20px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.stats-eyebrow {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4f46e5;
+  letter-spacing: 0.02em;
+  margin: 0 0 6px 0;
+  text-transform: uppercase;
+}
+
+.stats-hero__subtitle {
+  color: #5f6c85;
+  margin: 4px 0 12px 0;
+  line-height: 1.4;
+}
+
+.stats-metric-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.metric-chip {
+  background: white;
+  border: 1px solid #e7ecf3;
+  padding: 10px 14px;
+  border-radius: 12px;
+  min-width: 180px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.metric-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #77859a;
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+.stats-filters-card {
+  padding: 18px 20px;
+}
+
+.filters-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.filters-title {
+  font-weight: 700;
+  margin: 0 0 2px 0;
+}
+
+.filters-subtitle {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.filters-row {
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 10px !important;
+}
+
+.filters-row > * {
+  flex: 1 1 180px;
+}
+
+/* card header separator */
+.wb-card > h3 {
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f3f6fb;
+  font-size: 1.1rem;
+}
+
+/* Responsive stats grid */
+.stats-grid {
+  width: 100%;
+  margin: 0 0 24px 0;
+}
+
+.wb-card .chart-wrapper {
+  width: 100%;
+  height: 420px;
+}
+
+.sales-calendar-card .wb-calendar-grid {
+  gap: 6px;
+}
+
+.card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.card-header h3 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.card-caption {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.chart-empty {
+  display: grid;
+  place-items: center;
+  color: #94a3b8;
+  height: 100%;
+  background: #f8fafc;
+  border: 1px dashed #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.95rem;
+}
+
+/* Force canvas to fill wrapper (Chart.js respects container size) */
+.chart-wrapper > div,
+.chart-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
 
 /* Page title variant aligned to card width (used for calendar pages) */
 .wb-page-title.wb-page-title--card {
@@ -186,10 +387,12 @@
   }
 
   .wb-card {
-    width: 94vw;
-    max-width: 980px;
     padding: 12px;
     border-radius: 12px;
+  }
+
+  .wb-card .chart-wrapper {
+    height: 340px;
   }
 
   .wb-page-title.wb-page-title--card {
@@ -199,21 +402,37 @@
     text-align: left;
   }
 
-  .wb-topnav {
-    padding: 8px 10px;
-  }
-
-  .wb-topnav-inner {
-    gap: 8px;
-  }
-
-  .wb-topnav-title {
-    font-size: 1rem;
+  .wb-topnav-toolbar {
+    padding: 0 8px;
   }
 
   .wb-toolbar {
     flex-wrap: wrap;
     gap: 8px;
+  }
+
+  .stats-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-metric-row {
+    gap: 8px;
+  }
+
+  .metric-chip {
+    min-width: 150px;
+  }
+
+  .sales-layout {
+    width: 94%;
+  }
+
+  .sales-calendar-card {
+    padding: 14px;
+  }
+
+  .wb-topnav-actions {
+    gap: 4px;
   }
 
   .wb-calendar-header-title {
@@ -258,42 +477,61 @@
   .wb-table-wrapper td, .wb-table-wrapper th {
     padding: 6px 8px;
   }
-
+}
 
 /* Additional small-screen adjustments for clarity */
 @media (max-width: 800px) {
   .wb-topnav-title { font-size: 0.95rem; }
   .wb-calendar-header-title { font-size: 0.95rem; }
 }
-  .wb-table-wrapper table {
-    font-size: 0.85rem;
-  }
 
-  /* sale detail styles */
-  .sale-type-summary {
-    border-radius: 6px;
-    display: flex;
-  }
-  .sale-item-row {
-    border-radius: 6px;
-  }
+.wb-table-wrapper table {
+  font-size: 0.85rem;
+}
 
-  /* type-specific bg colors */
-  .type-card { background-color: #fff8e1; }
-  .type-cash { background-color: #e8f5e9; }
-  .type-online { background-color: #e3f2fd; }
-  .type-etc { background-color: #f3e5f5; }
-  .type-unknown { background-color: #f5f5f5; }
-
-  /* Make dialog inputs more compact */
-  .MuiDialog-root .MuiDialog-paper {
-    width: 92vw;
-    max-width: 480px;
+/* Shorter viewports (e.g., 1024x768) */
+@media (max-height: 820px) {
+  .stats-page {
+    padding-top: 4px;
   }
-
-  /* Make calendar header controls tighter */
-  .wb-calendar-header > div {
-    display: flex;
-    align-items: center;
+  .stats-hero {
+    margin-bottom: 12px;
   }
+  .wb-card .chart-wrapper {
+    height: 320px;
+  }
+  .wb-card {
+    padding: 20px;
+  }
+  .sales-calendar-card {
+    padding: 14px;
+  }
+}
+
+/* sale detail styles */
+.sale-type-summary {
+  border-radius: 6px;
+  display: flex;
+}
+.sale-item-row {
+  border-radius: 6px;
+}
+
+/* type-specific bg colors */
+.type-card { background-color: #fff8e1; }
+.type-cash { background-color: #e8f5e9; }
+.type-online { background-color: #e3f2fd; }
+.type-etc { background-color: #f3e5f5; }
+.type-unknown { background-color: #f5f5f5; }
+
+/* Make dialog inputs more compact */
+.MuiDialog-root .MuiDialog-paper {
+  width: 92vw;
+  max-width: 480px;
+}
+
+/* Make calendar header controls tighter */
+.wb-calendar-header > div {
+  display: flex;
+  align-items: center;
 }

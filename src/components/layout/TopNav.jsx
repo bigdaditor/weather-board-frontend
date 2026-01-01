@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Button, Stack } from '@mui/material';
 import '../../styles/weatherboard.css';
 
 function TopNav() {
@@ -13,23 +14,35 @@ function TopNav() {
   ];
 
   return (
-    <div className="wb-topnav">
-      <div className="wb-topnav-inner">
-        <div className="wb-topnav-title">웨더보드</div>
-        {linkItems.map((item) => (
-          <div
-            key={item.path}
-            className={
-              'wb-topnav-link' +
-              (location.pathname === item.path ? ' wb-topnav-link-active' : '')
-            }
-            onClick={() => navigate(item.path)}
-          >
-            {item.label}
-          </div>
-        ))}
-      </div>
-    </div>
+    <AppBar position="static" elevation={0} className="wb-topnav-appbar">
+      <Toolbar className="wb-topnav-toolbar">
+        <Typography
+          variant="h6"
+          className="wb-topnav-brand"
+          onClick={() => navigate('/sales-input')}
+        >
+          Weather Board
+        </Typography>
+
+        <Stack direction="row" spacing={1} className="wb-topnav-actions">
+          {linkItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Button
+                key={item.path}
+                size="small"
+                variant={isActive ? 'contained' : 'text'}
+                disableElevation
+                className={`wb-topnav-btn${isActive ? ' wb-topnav-btn-active' : ''}`}
+                onClick={() => navigate(item.path)}
+              >
+                {item.label}
+              </Button>
+            );
+          })}
+        </Stack>
+      </Toolbar>
+    </AppBar>
   );
 }
 
