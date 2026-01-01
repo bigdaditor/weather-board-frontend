@@ -22,27 +22,20 @@ export function useSalesCalendar({ refreshKey = 0 } = {}) {
   const [amount, setAmount] = useState('');
   const [saleType, setSaleType] = useState('');
   const [editingSaleId, setEditingSaleId] = useState(null);
+  const [status, setStatus] = useState({ type: 'idle', message: '' });
 
   const monthKey = useMemo(() => buildMonthKey(currentDate), [currentDate]);
 
   useEffect(() => {
     const load = async () => {
       try {
+        setStatus({ type: 'loading', message: '매출 데이터를 불러오는 중입니다...' });
         const data = await fetchSalesByMonth(monthKey);
         const map = {};
-        console.log(data);
+
         if (data && data.data && Array.isArray(data.data)) {
           // paginated grouped response
           data.data.forEach((g) => {
-            if (!g.date) return;
-            const dateStr = g.date;
-            const amt = typeof g.total_amount === 'number' ? g.total_amount : Number(g.total_amount ?? 0);
-            if (Number.isNaN(amt)) return;
-            map[dateStr] = { amount: amt, items: [] };
-          });
-        } else if (Array.isArray(data) && data.length > 0 && data[0].date && data[0].payment_types) {
-          // grouped array
-          data.forEach((g) => {
             if (!g.date) return;
             const dateStr = g.date;
             const amt = typeof g.total_amount === 'number' ? g.total_amount : Number(g.total_amount ?? 0);
@@ -66,8 +59,14 @@ export function useSalesCalendar({ refreshKey = 0 } = {}) {
         }
 
         setSalesByDate(map);
+        setStatus(
+          Object.keys(map).length === 0
+            ? { type: 'info', message: '이번 달 매출 데이터가 없습니다. "매출입력" 버튼으로 추가해보세요.' }
+            : { type: 'idle', message: '' }
+        );
       } catch (e) {
-        console.error(e);
+        setSalesByDate({});
+        setStatus({ type: 'error', message: '매출 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.' });
       }
     };
 
@@ -184,5 +183,6 @@ export function useSalesCalendar({ refreshKey = 0 } = {}) {
     handleCloseDialog,
     setAmount,
     setSaleType,
+    status,
   };
 }
