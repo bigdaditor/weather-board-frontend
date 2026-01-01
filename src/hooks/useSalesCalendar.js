@@ -158,8 +158,7 @@ export function useSalesCalendar({ refreshKey = 0 } = {}) {
 
       handleCloseDialog();
     } catch (e) {
-      console.error(e);
-      alert('매출 저장/수정 중 에러났다. 콘솔 한 번 봐라 햄.');
+      alert('매출 저장/수정 중 에러가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   };
 
