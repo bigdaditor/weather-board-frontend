@@ -88,7 +88,7 @@ function StatsPage() {
     try {
       setLoading(true);
       // 날씨-매출 동기화 트리거 가정
-      await fetch('/sync/weather', { method: 'POST' });
+      await fetch('http://localhost:8000/weather', { method: 'POST' });
       await fetchStats(monthKey);
     } catch (err) {
       console.error(err);

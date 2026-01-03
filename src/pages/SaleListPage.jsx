@@ -145,11 +145,11 @@ function SalesListPage() {
   };
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', padding: '8px 0' }}>
       <h2 className="wb-page-title wb-page-title--aligned">매출 리스트</h2>
 
-      <div className="wb-table-wrapper">
-        <TableContainer component={Paper} elevation={0}>
+      <div className="wb-table-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <TableContainer component={Paper} elevation={0} sx={{ flex: 1, overflow: 'auto' }}>
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow>
