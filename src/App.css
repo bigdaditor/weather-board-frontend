@@ -48,16 +48,20 @@ body {
     "title-bar"
     "sub-content";
   grid-template-rows: 82px auto;
+  justify-items: center;
 }
 
 .title-bar {
   grid-area: title-bar;
   display: flex;
   align-items: center;
+  justify-self: start;
+  width: 100%;
 }
 
 .sub-content {
   grid-area: sub-content;
+  width: 100%;
 }
 
 .sub-container-stats {
@@ -69,12 +73,15 @@ body {
     "filter-bar-stats"
     "sub-content-stats";
   grid-template-rows: 86px auto auto auto;
+  justify-items: center;
 }
 
 .title-bar-stats {
   grid-area: title-bar-stats;
   display: flex;
   align-items: center;
+  justify-self: start;
+  width: 100%;
 }
 
 .kpi-bar-stats {
@@ -83,15 +90,18 @@ body {
   align-content: center;
   justify-content: flex-start;
   margin-bottom: 8px;
+  width: 100%;
 }
 
 .filter-bar-stats {
   grid-area: filter-bar-stats;
   margin-bottom: 8px;
+  width: 100%;
 }
 
 .sub-content-stats {
   grid-area: sub-content-stats;
+  width: 100%;
 }
 
 .filter-bar-left-stats {
