@@ -85,7 +85,6 @@ function StatsPage() {
       setMonthlySeries(sortedMonthly);
     } catch (err) {
       console.error("fetchStats err", err);
-      alert("통계 데이터 불러오다가 에러났습니다.");
     }
   };
 
@@ -258,7 +257,7 @@ function StatsPage() {
                   최근 12개월 흐름을 확인하세요.
                 </Typography>
               </div>
-              <div>
+              <Paper elevation={1}>
                 {monthlyLabels.length === 0 ? (
                   <Box sx={{height:"50px"}} display={"flex"} alignItems={"center"} justifyContent={"center"}>
                     <Typography variant="h6">
@@ -268,7 +267,7 @@ function StatsPage() {
                 ) : (
                   <Line data={monthlyData} options={commonOptions} />
                 )}
-              </div>
+              </Paper>
             </Box>
           </div>
         </div>

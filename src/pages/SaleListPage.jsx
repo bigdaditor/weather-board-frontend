@@ -78,7 +78,6 @@ function SalesListPage() {
         return resp;
       } catch (err) {
         console.error(err);
-        alert("매출 리스트 불러오다 터졌다.");
         return [];
       }
     },
