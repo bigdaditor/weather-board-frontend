@@ -1,7 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Stack } from '@mui/material';
-import '../../styles/weatherboard.css';
 
 function TopNav() {
   const location = useLocation();
@@ -14,33 +13,35 @@ function TopNav() {
   ];
 
   return (
-    <AppBar position="static" elevation={0} className="wb-topnav-appbar">
-      <Toolbar className="wb-topnav-toolbar">
+    <AppBar position="fixed" elevation={0}>
+      <Toolbar>
         <Typography
-          variant="h6"
-          className="wb-topnav-brand"
+          variant="h4"
           onClick={() => navigate('/sales-input')}
         >
-          Weather Board
+          웨더 보드
         </Typography>
 
-        <Stack direction="row" spacing={1} className="wb-topnav-actions">
+        <div className="menu">
           {linkItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Button
                 key={item.path}
                 size="small"
-                variant={isActive ? 'contained' : 'text'}
-                disableElevation
-                className={`wb-topnav-btn${isActive ? ' wb-topnav-btn-active' : ''}`}
+                variant="contained"
                 onClick={() => navigate(item.path)}
+                color={isActive ? 'secondary' : 'primary'}
+                className="menu-button ml-2"
+                sx={{ border: 1, marginLeft: 1 }}
               >
-                {item.label}
+                <Typography variant="h6">
+                  {item.label}
+                </Typography>
               </Button>
             );
           })}
-        </Stack>
+        </div>
       </Toolbar>
     </AppBar>
   );

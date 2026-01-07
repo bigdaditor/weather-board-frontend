@@ -22,7 +22,6 @@ function SalesCalendarWithSales({ onDateClick, refreshKey = 0 }) {
     setSaleType,
     setSelectedDate,
     openNewDialog,
-    status,
   } = useSalesCalendar({ refreshKey });
 
   const handleCalendarClick = (date) => {
@@ -66,11 +65,6 @@ function SalesCalendarWithSales({ onDateClick, refreshKey = 0 }) {
         onClose={handleCloseDialog}
         onSave={handleSave}
       />
-      {status?.message && (
-        <div className={`sales-info-banner${status.type === 'error' ? ' sales-info-banner--error' : ''}`}>
-          {status.message}
-        </div>
-      )}
     </>
   );
 }

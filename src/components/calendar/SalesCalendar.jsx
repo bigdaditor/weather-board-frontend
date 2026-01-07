@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
-import { IconButton, Typography, Button } from '@mui/material';
+import { IconButton, Typography, Button, Paper } from '@mui/material';
 import { Edit } from '@mui/icons-material';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
-import '../../styles/weatherboard.css';
 
 const WEEK_DAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -88,14 +87,14 @@ function SalesCalendar({ currentDate, onMonthChange, onDateClick, salesByDate, o
   const month = currentDate.getMonth() + 1;
 
   return (
-    <div>
-      <div className="wb-calendar-header">
+    <Paper elevation={1} variant="outlined">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <IconButton size="small" onClick={handlePrevMonth}>
             <ChevronLeft />
           </IconButton>
         </div>
-        <Typography className="wb-calendar-header-title">
+        <Typography>
           {year}년 {month}월
         </Typography>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -108,9 +107,9 @@ function SalesCalendar({ currentDate, onMonthChange, onDateClick, salesByDate, o
         </div>
       </div>
 
-      <div className="wb-calendar-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
         {WEEK_DAYS.map((w) => (
-          <div key={w} className="wb-calendar-weekday">
+          <div key={w} style={{ textAlign: 'center', fontWeight: 600, fontSize: '0.85rem', padding: '4px 0' }}>
             {w}
           </div>
         ))}
@@ -119,23 +118,48 @@ function SalesCalendar({ currentDate, onMonthChange, onDateClick, salesByDate, o
           const dateKey = formatDateKey(cell.date);
           const amount = salesByDate[dateKey]?.amount;
           const isToday = isSameDay(cell.date, today);
-          const classNames = [
-            'wb-calendar-cell',
-            !cell.inCurrentMonth ? 'wb-calendar-cell-other-month' : '',
-            isToday ? 'wb-calendar-cell-today' : '',
-          ]
-            .filter(Boolean)
-            .join(' ');
+          const baseStyle = {
+            borderRadius: 8,
+            backgroundColor: '#ffffff',
+            minHeight: 80,
+            padding: 6,
+            cursor: 'pointer',
+            border: '1px solid #e8e8e8',
+            display: 'flex',
+            flexDirection: 'column',
+            fontSize: '0.85rem',
+            position: 'relative',
+          };
+          const fadedStyle = !cell.inCurrentMonth
+            ? { backgroundColor: '#fafafa', color: '#bdbdbd' }
+            : {};
+          const todayStyle = isToday ? { border: '2px solid #1976d2' } : {};
+          const cellStyle = { ...baseStyle, ...fadedStyle, ...todayStyle };
 
           return (
             <div
               key={idx}
-              className={classNames}
+              style={cellStyle}
               onClick={() => onDateClick(cell.date)}
             >
-              <div className="wb-calendar-date">{cell.date.getDate()}</div>
+              <div style={{ fontWeight: 700, marginBottom: 6, fontSize: '0.95rem' }}>{cell.date.getDate()}</div>
               {typeof amount === 'number' && (
-                <div className="wb-calendar-badge">
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  padding: '6px 12px',
+                  borderRadius: 999,
+                  backgroundColor: '#1976d2',
+                  color: '#ffffff',
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                }}>
                   {amount.toLocaleString()}
                 </div>
               )}
@@ -156,7 +180,7 @@ function SalesCalendar({ currentDate, onMonthChange, onDateClick, salesByDate, o
           );
         })}
       </div>
-    </div>
+    </Paper>
   );
 }
 
