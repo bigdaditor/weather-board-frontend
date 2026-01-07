@@ -281,7 +281,13 @@ function SalesListPage() {
                   })}
                   {groupedSales.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={3}>데이터가 없습니다.</TableCell>
+                      <TableCell colSpan={3}>
+                        <Box display="flex" alignItems="center" justifyContent="center">
+                          <Typography variant="h5">
+                            데이터가 없습니다.
+                          </Typography>
+                        </Box>
+                      </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
