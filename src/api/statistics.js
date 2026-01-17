@@ -26,4 +26,16 @@ async function fetchStatisticsSummary(periodType = 'month', payment_type = 'all'
   return handleJsonResponse(resp);
 }
 
-export { fetchStatistics, fetchStatisticsSummary };
+async function fetchWeatherMonthlyStats(params = {}) {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value != null && value !== '' && value !== 'all') {
+      qs.append(key, value);
+    }
+  });
+  const url = `${API_BASE_URL}/statistics/weather/monthly${qs.toString() ? `?${qs.toString()}` : ''}`;
+  const resp = await fetch(url);
+  return handleJsonResponse(resp);
+}
+
+export { fetchStatistics, fetchStatisticsSummary, fetchWeatherMonthlyStats };

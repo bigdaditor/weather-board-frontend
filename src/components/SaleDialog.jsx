@@ -1,7 +1,12 @@
 import React from "react";
 import {Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, TextField} from "@mui/material";
+import { SALE_TYPES } from "../constants/saleTypes";
 
 function SaleDialog(props) {
+  const saleTypes = Array.isArray(props.saleTypes) && props.saleTypes.length
+    ? props.saleTypes
+    : SALE_TYPES;
+
   return (
     <Dialog open={props.open} onClose={props.onClose} fullWidth maxWidth="xs">
       <DialogTitle>매출 입력</DialogTitle>
@@ -31,10 +36,11 @@ function SaleDialog(props) {
           value={props.saleType}
           onChange={(e) => props.onChangeSaleType(e.target.value)}
         >
-          <MenuItem value="card">카드</MenuItem>
-          <MenuItem value="cash">현금</MenuItem>
-          <MenuItem value="online">온라인</MenuItem>
-          <MenuItem value="etc">기타</MenuItem>
+          {saleTypes.map((type) => (
+            <MenuItem key={type.value} value={type.value}>
+              {type.label}
+            </MenuItem>
+          ))}
         </TextField>
       </DialogContent>
       <DialogActions>

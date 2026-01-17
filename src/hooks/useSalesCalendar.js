@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createSale, fetchSalesByMonth, updateSale } from '../api/sale';
+import { fetchWeather } from '../api/weather';
 
 export function formatDateKey(date) {
   const y = date.getFullYear();
@@ -17,6 +18,7 @@ function buildMonthKey(date) {
 export function useSalesCalendar({ refreshKey = 0 } = {}) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [salesByDate, setSalesByDate] = useState({});
+  const [weatherByDate, setWeatherByDate] = useState({});
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [amount, setAmount] = useState('');
@@ -70,6 +72,28 @@ export function useSalesCalendar({ refreshKey = 0 } = {}) {
     };
 
     load();
+  }, [monthKey, refreshKey]);
+
+  useEffect(() => {
+    const loadWeather = async () => {
+      try {
+        const data = await fetchWeather(monthKey);
+        const map = {};
+        if (Array.isArray(data)) {
+          data.forEach((item) => {
+            if (!item?.date) return;
+            const dateKey = item.date.slice(0, 10);
+            if (!dateKey.startsWith(monthKey)) return;
+            map[dateKey] = item;
+          });
+        }
+        setWeatherByDate(map);
+      } catch {
+        setWeatherByDate({});
+      }
+    };
+
+    loadWeather();
   }, [monthKey, refreshKey]);
 
   const handleDayClick = (date) => {
@@ -168,6 +192,7 @@ export function useSalesCalendar({ refreshKey = 0 } = {}) {
     currentDate,
     setCurrentDate,
     salesByDate,
+    weatherByDate,
     dialogOpen,
     selectedDate,
     setSelectedDate,

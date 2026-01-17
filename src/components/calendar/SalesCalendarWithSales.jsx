@@ -11,6 +11,7 @@ function SalesCalendarWithSales({ onDateClick, refreshKey = 0 }) {
     currentDate,
     setCurrentDate,
     salesByDate,
+    weatherByDate,
     dialogOpen,
     amount,
     saleType,
@@ -52,6 +53,7 @@ function SalesCalendarWithSales({ onDateClick, refreshKey = 0 }) {
         onAddClick={handleAddClick}
         onEditClick={handleEditFromCalendar}
         salesByDate={salesByDate}
+        weatherByDate={weatherByDate}
       />
       <SaleDialog
         open={dialogOpen}
